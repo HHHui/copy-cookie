@@ -33,7 +33,7 @@ const setNewCookies = (cookies, index, url, callback) => {
             name,
             value,
             path,
-            domain,
+            domain: 'localhost',
         }, () => setNewCookies(cookies, index + 1, url, callback));
     } catch (e) {
         console.warn(`There was an error setting the cookies: ${error}`);
@@ -54,8 +54,8 @@ const onPasteButtonClick = () => {
     if (!copyCookieData)
         return alert('Oh Man! You need to copy the cookies first.');
 
-    let domain = document.getElementById('domainInput').value.trim();
-    if (!domain) domain = 'localhost';
+    let title = document.getElementById('titleInput').value.trim();
+    if(!title) return alert('Please Input target tab HTML title');
 
     // ENABLE LOADER
     const spinner = document.getElementById('loader');
@@ -63,19 +63,22 @@ const onPasteButtonClick = () => {
 
     chrome.tabs.query(
         {
-            currentWindow: true,
-            active: true,
+            active: false,
+            title
         },
         tab => {
             if (!tab?.[0]?.url) {
                 spinner.setAttribute('style', 'display: none;');
                 return alert('Tab with invalid URL. Are you kidding me ???');
             }
-            
+            console.log('paste target url', tab[0].url);
             chrome.cookies.getAll({ url: tab[0].url }, cookies => {
                 removeCookies(cookies, 0, tab[0].url, () => {
                     setNewCookies(copyCookieData, 0, tab[0].url, () => {
                         spinner.setAttribute('style', 'display: none;');
+                        chrome.storage.sync.set({title}, function() {
+                            console.log("chorme.storage save title success!");
+                        });
                         return onResetButtonClick('paste');
                     });
                 });
@@ -108,6 +111,10 @@ const handlePopupUI = action => {
         successPasteLabel.setAttribute('style', 'display: none');
     }
     if (action === 'copy' || copyCookieData) {
+        chrome.storage.sync.get(['title'], function({title}) {
+            console.log("copy cookie on load, get saved title", title);
+            document.getElementById('titleInput').value = title;
+        });
         welcomeLabel.setAttribute('style', 'display: none');
     } else if (action === 'reset') {
         welcomeLabel.setAttribute('style', 'display: block');

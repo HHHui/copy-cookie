@@ -3,9 +3,13 @@
     "name": "Copy Cookie",
     "version": "1.0.5",
     "description": "Extension to copy cookies across the domains specially localhost.",
-    "permissions": ["cookies", "activeTab", "<all_urls>"],
+    "permissions": ["cookies", "activeTab", "<all_urls>", "storage", "tabs"],
     "browser_action": {
         "default_popup": "popup.html"
+    },
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
     },
     "icons": {
         "16": "images/icon.png",
